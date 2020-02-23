@@ -1,46 +1,67 @@
 package com.kkot.moneytransfer.domain;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-import com.kkot.moneytransfer.domain.exception.AccountDoesNotExistException;
+import com.kkot.moneytransfer.domain.status.AccountNotExistStatus;
+import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
+import com.kkot.moneytransfer.domain.status.OkStatus;
+import com.kkot.moneytransfer.domain.status.OperationStatus;
+import com.kkot.moneytransfer.domain.util.ValueHolder;
 
 @ApplicationScoped
 public class Bank {
 
-	private Map<AccountId, Account> accounts;
+	private final AccountsStore accountsStore;
 
-	public Bank() {
-		this.accounts = new HashMap<>();
+	@Inject
+	public Bank(final AccountsStore accountsStore) {
+		this.accountsStore = accountsStore;
 	}
 
 	public void createAccount(AccountId id) {
-		this.accounts.putIfAbsent(id, new Account(id));
+		this.accountsStore.createAccount(id);
 	}
 
-	public void changeBalance(AccountId id, int amount) {
-		Account account = getAccount(id);
-		account.changeBalance(amount);
+	public OperationStatus changeBalance(AccountId id, int amount) {
+		boolean accountExisted = accountsStore.accessExclusively(id, account -> {
+			account.changeBalance(amount);
+		});
+		return accountExisted ? new OkStatus() : new AccountNotExistStatus(id);
 	}
 
-	private Account getAccount(AccountId id) {
-		Account account = this.accounts.get(id);
-		if (account == null) {
-			throw new AccountDoesNotExistException();
+	public int getBalance(AccountId accountId) {
+		var holder = new ValueHolder<>(0);
+		accountsStore.accessShared(accountId, account -> holder.setValue(account.getBalance()));
+		return holder.getValue();
+	}
+
+	public OperationStatus transfer(final Transfer transfer) {
+		var result = new ValueHolder<OperationStatus>(new OkStatus());
+
+		if(!accountsStore.contains(transfer.getSourceId())) {
+			return new AccountNotExistStatus(transfer.getSourceId());
 		}
-		return account;
-	}
+		if(!accountsStore.contains(transfer.getTargetId())) {
+			return new AccountNotExistStatus(transfer.getTargetId());
+		}
 
-	public Optional<Integer> getBalance(AccountId accountId) {
-		return Optional.ofNullable(accounts.get(accountId))
-				.map(Account::getBalance);
-	}
+		var sourceAndTargetIds = List.of(transfer.getSourceId(), transfer.getTargetId());
+		accountsStore.accessExclusively(sourceAndTargetIds, accounts -> {
+			Account source = accounts.get(0);
+			Account target = accounts.get(1);
 
-	public synchronized void transfer(final Transfer transfer) {
-		getAccount(transfer.getFrom()).changeBalance(-transfer.getAmount());
-		getAccount(transfer.getTo()).changeBalance(transfer.getAmount());
+			if(source.getBalance() < transfer.getAmount()) {
+				result.setValue(new InsufficientBalanceStatus());
+				return;
+			}
+			source.changeBalance(-transfer.getAmount());
+			target.changeBalance(transfer.getAmount());
+			result.setValue(new OkStatus());
+		});
+
+		return result.getValue();
 	}
 }

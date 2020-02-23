@@ -1,5 +1,8 @@
 package com.kkot.moneytransfer.api;
 
+import com.kkot.moneytransfer.domain.AccountId;
+import com.kkot.moneytransfer.domain.Transfer;
+
 public class TransferDto {
 	private String from;
 	private String to;
@@ -12,6 +15,10 @@ public class TransferDto {
 		this.from = from;
 		this.to = to;
 		this.amount = amount;
+	}
+
+	public Transfer toTransfer() {
+		return new Transfer(AccountId.of(from), AccountId.of(to), amount);
 	}
 
 	public String getFrom() {

@@ -1,22 +1,22 @@
 package com.kkot.moneytransfer.domain;
 
 public class Transfer {
-	private AccountId from;
-	private AccountId to;
-	private int amount;
+	private final AccountId sourceId;
+	private final AccountId targetId;
+	private final int amount;
 
-	public Transfer(final int amount, final AccountId to, final AccountId from) {
-		this.from = from;
-		this.to = to;
+	public Transfer(final AccountId sourceId, final AccountId targetId, final int amount) {
+		this.sourceId = sourceId;
+		this.targetId = targetId;
 		this.amount = amount;
 	}
 
-	public AccountId getFrom() {
-		return from;
+	public AccountId getSourceId() {
+		return sourceId;
 	}
 
-	public AccountId getTo() {
-		return to;
+	public AccountId getTargetId() {
+		return targetId;
 	}
 
 	public int getAmount() {
