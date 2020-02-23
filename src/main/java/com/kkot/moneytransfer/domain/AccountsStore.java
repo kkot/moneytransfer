@@ -1,10 +1,13 @@
 package com.kkot.moneytransfer.domain;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -50,12 +53,12 @@ class AccountsStore {
 	}
 
 	public boolean accessExclusively(AccountId accountId, Consumer<Account> operation) {
-		return accessAccounts(List.of(accountId), ReadWriteLock::writeLock,
+		return accessAccounts(Arrays.asList(accountId), ReadWriteLock::writeLock,
 				(accounts -> operation.accept(accounts.get(0))));
 	}
 
 	public boolean accessShared(AccountId accountId, Consumer<Account> operation) {
-		return accessAccounts(List.of(accountId), ReadWriteLock::readLock,
+		return accessAccounts(Arrays.asList(accountId), ReadWriteLock::readLock,
 				(accounts -> operation.accept(accounts.get(0))));
 	}
 
@@ -73,7 +76,7 @@ class AccountsStore {
 		}
 
 		// ids are sorted so that account with lower id is locked first, to avoid deadlocks
-		var sortedIds = new TreeSet<>(accountIds);
+		SortedSet<AccountId> sortedIds = new TreeSet<>(accountIds);
 		List<Lock> sortedLocks = sortedIds
 				.stream()
 				.map(id -> accounts.get(id).getLock())

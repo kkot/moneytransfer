@@ -1,21 +1,19 @@
 package com.kkot.moneytransfer.api;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
-
-import org.junit.jupiter.api.Test;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import org.junit.jupiter.api.Test;
 
 import com.kkot.moneytransfer.domain.AccountId;
 import com.kkot.moneytransfer.domain.Bank;
-import com.kkot.moneytransfer.domain.Transfer;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 
 @QuarkusTest
 public class TransferResourceTest {
@@ -56,7 +54,7 @@ public class TransferResourceTest {
 				.post("/transfer")
 				// then
 				.then()
-				.statusCode(Status.CREATED.getStatusCode());
+				.statusCode(Status.OK.getStatusCode());
 
 		assertEquals(150, bank.getBalance(ACCOUNT_ID_1));
 		assertEquals(100, bank.getBalance(ACCOUNT_ID_2));

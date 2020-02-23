@@ -1,5 +1,6 @@
 package com.kkot.moneytransfer.domain;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -33,13 +34,13 @@ public class Bank {
 	}
 
 	public int getBalance(AccountId accountId) {
-		var holder = new ValueHolder<>(0);
+		ValueHolder<Integer> holder = new ValueHolder<>(0);
 		accountsStore.accessShared(accountId, account -> holder.setValue(account.getBalance()));
 		return holder.getValue();
 	}
 
 	public OperationStatus transfer(final Transfer transfer) {
-		var result = new ValueHolder<OperationStatus>(new OkStatus());
+		ValueHolder<OperationStatus> result = new ValueHolder<>(new OkStatus());
 
 		if(!accountsStore.contains(transfer.getSourceId())) {
 			return new AccountNotExistStatus(transfer.getSourceId());
@@ -48,7 +49,7 @@ public class Bank {
 			return new AccountNotExistStatus(transfer.getTargetId());
 		}
 
-		var sourceAndTargetIds = List.of(transfer.getSourceId(), transfer.getTargetId());
+		List<AccountId> sourceAndTargetIds = Arrays.asList(transfer.getSourceId(), transfer.getTargetId());
 		accountsStore.accessExclusively(sourceAndTargetIds, accounts -> {
 			Account source = accounts.get(0);
 			Account target = accounts.get(1);

@@ -38,4 +38,9 @@ public class AccountId implements Comparable<AccountId> {
 	public int hashCode() {
 		return id != null ? id.hashCode() : 0;
 	}
+
+	@Override
+	public String toString() {
+		return id;
+	}
 }

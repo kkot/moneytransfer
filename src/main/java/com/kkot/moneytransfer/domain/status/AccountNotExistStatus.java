@@ -2,7 +2,7 @@ package com.kkot.moneytransfer.domain.status;
 
 import com.kkot.moneytransfer.domain.AccountId;
 
-public class AccountNotExistStatus extends OperationStatus {
+public class AccountNotExistStatus implements OperationStatus {
 	private final AccountId id;
 
 	public AccountNotExistStatus(final AccountId id) {
