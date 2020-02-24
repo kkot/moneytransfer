@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.kkot.moneytransfer.domain.status.AccountNotExistStatus;
+import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
 import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
 import com.kkot.moneytransfer.domain.status.OkStatus;
 import com.kkot.moneytransfer.domain.status.OperationStatus;
 
+import io.quarkus.test.junit.QuarkusTest;
+
+@QuarkusTest
 class BankTest {
 
 	private static final AccountId ACCOUNT_ID_1 = AccountId.of("1");
@@ -34,8 +37,8 @@ class BankTest {
 		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
 		// then
-		assertTrue(operationStatus instanceof AccountNotExistStatus);
-		assertEquals(ACCOUNT_ID_1, ((AccountNotExistStatus) operationStatus).getId());
+		assertTrue(operationStatus instanceof AccountIsMissingStatus);
+		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getId());
 	}
 
 	@Test
@@ -99,8 +102,8 @@ class BankTest {
 		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
 		// then
-		assertEquals(operationStatus.getClass(), AccountNotExistStatus.class);
-		assertEquals(ACCOUNT_ID_1, ((AccountNotExistStatus) operationStatus).getId());
+		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
+		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getId());
 	}
 
 	@Test
@@ -112,8 +115,8 @@ class BankTest {
 		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
 		// then
-		assertEquals(operationStatus.getClass(), AccountNotExistStatus.class);
-		assertEquals(ACCOUNT_ID_2, ((AccountNotExistStatus) operationStatus).getId());
+		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
+		assertEquals(ACCOUNT_ID_2, ((AccountIsMissingStatus) operationStatus).getId());
 	}
 
 	@Test

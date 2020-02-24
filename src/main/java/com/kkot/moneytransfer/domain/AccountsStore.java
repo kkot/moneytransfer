@@ -1,7 +1,5 @@
 package com.kkot.moneytransfer.domain;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,34 +9,15 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
-class AccountWithLock {
-	private Account account;
-	private ReadWriteLock lock;
-
-	public AccountWithLock(final Account account) {
-		this.account = account;
-		this.lock = new ReentrantReadWriteLock();
-	}
-
-	public Account getAccount() {
-		return account;
-	}
-
-	public ReadWriteLock getLock() {
-		return lock;
-	}
-}
-
 @ApplicationScoped
 class AccountsStore {
-	private Map<AccountId, AccountWithLock> accounts;
+	protected Map<AccountId, AccountWithLock> accounts;
 
 	public AccountsStore() {
 		this.accounts = Collections.synchronizedMap(new HashMap<>());
@@ -53,12 +32,12 @@ class AccountsStore {
 	}
 
 	public boolean accessExclusively(AccountId accountId, Consumer<Account> operation) {
-		return accessAccounts(Arrays.asList(accountId), ReadWriteLock::writeLock,
+		return accessAccounts(List.of(accountId), ReadWriteLock::writeLock,
 				(accounts -> operation.accept(accounts.get(0))));
 	}
 
 	public boolean accessShared(AccountId accountId, Consumer<Account> operation) {
-		return accessAccounts(Arrays.asList(accountId), ReadWriteLock::readLock,
+		return accessAccounts(List.of(accountId), ReadWriteLock::readLock,
 				(accounts -> operation.accept(accounts.get(0))));
 	}
 

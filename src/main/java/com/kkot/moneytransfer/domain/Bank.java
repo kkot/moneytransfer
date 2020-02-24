@@ -1,12 +1,11 @@
 package com.kkot.moneytransfer.domain;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.kkot.moneytransfer.domain.status.AccountNotExistStatus;
+import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
 import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
 import com.kkot.moneytransfer.domain.status.OkStatus;
 import com.kkot.moneytransfer.domain.status.OperationStatus;
@@ -15,10 +14,14 @@ import com.kkot.moneytransfer.domain.util.ValueHolder;
 @ApplicationScoped
 public class Bank {
 
-	private final AccountsStore accountsStore;
+	private AccountsStore accountsStore;
+
+	protected Bank() {
+		// needed for CDI
+	}
 
 	@Inject
-	public Bank(final AccountsStore accountsStore) {
+	public Bank(AccountsStore accountsStore) {
 		this.accountsStore = accountsStore;
 	}
 
@@ -30,7 +33,7 @@ public class Bank {
 		boolean accountExisted = accountsStore.accessExclusively(id, account -> {
 			account.changeBalance(amount);
 		});
-		return accountExisted ? new OkStatus() : new AccountNotExistStatus(id);
+		return accountExisted ? new OkStatus() : new AccountIsMissingStatus(id);
 	}
 
 	public int getBalance(AccountId accountId) {
@@ -43,13 +46,13 @@ public class Bank {
 		ValueHolder<OperationStatus> result = new ValueHolder<>(new OkStatus());
 
 		if(!accountsStore.contains(transfer.getSourceId())) {
-			return new AccountNotExistStatus(transfer.getSourceId());
+			return new AccountIsMissingStatus(transfer.getSourceId());
 		}
 		if(!accountsStore.contains(transfer.getTargetId())) {
-			return new AccountNotExistStatus(transfer.getTargetId());
+			return new AccountIsMissingStatus(transfer.getTargetId());
 		}
 
-		List<AccountId> sourceAndTargetIds = Arrays.asList(transfer.getSourceId(), transfer.getTargetId());
+		List<AccountId> sourceAndTargetIds = List.of(transfer.getSourceId(), transfer.getTargetId());
 		accountsStore.accessExclusively(sourceAndTargetIds, accounts -> {
 			Account source = accounts.get(0);
 			Account target = accounts.get(1);

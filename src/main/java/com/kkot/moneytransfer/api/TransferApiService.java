@@ -6,7 +6,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.kkot.moneytransfer.domain.Bank;
-import com.kkot.moneytransfer.domain.status.AccountNotExistStatus;
+import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
 import com.kkot.moneytransfer.domain.status.OkStatus;
 import com.kkot.moneytransfer.domain.status.OperationStatus;
 
@@ -25,8 +25,8 @@ public class TransferApiService {
 		if(status instanceof OkStatus) {
 			return Response.ok().build();
 		}
-		if(status instanceof AccountNotExistStatus) {
-			var accountNotExistStatus = (AccountNotExistStatus) status;
+		if(status instanceof AccountIsMissingStatus) {
+			var accountNotExistStatus = (AccountIsMissingStatus) status;
 			return Response
 					.status(Response.Status.BAD_REQUEST)
 					.entity(new TransferErrorDto(TransferErrorType.ACCOUNT_ID_MISSING,

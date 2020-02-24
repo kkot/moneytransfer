@@ -1,5 +1,23 @@
 # moneytransfer project
 
+## Notes
+
+This is my first Quarkus project.
+
+For constructor injection no-args constructor is needed, this is different than Spring.
+
+https://quarkus.io/guides/cdi-reference#simplified-constructor-injection
+
+(so a no-args constructor should be generated for an application scoped bean class that does not extend any other class)
+https://github.com/quarkusio/quarkus/issues/6722
+
+
+## API
+
+It is described by ... TODO: add swagger.
+
+## Framework
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .

@@ -8,18 +8,24 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.inject.Inject;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.quarkus.test.junit.QuarkusTest;
+
+@QuarkusTest
 class BankTreadingTest {
 
 	private static final AccountId ACCOUNT_ID_1 = AccountId.of("1");
 	private static final AccountId ACCOUNT_ID_2 = AccountId.of("2");
+
+	@Inject
 	private Bank bank;
 
 	@BeforeEach
 	void setUp() {
-		bank = new Bank(new AccountsStore());
 	}
 
 	/**
