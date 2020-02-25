@@ -10,6 +10,8 @@ import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
 import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
 import com.kkot.moneytransfer.domain.status.OkStatus;
 import com.kkot.moneytransfer.domain.status.OperationStatus;
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.Transfer;
 
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -32,17 +34,38 @@ class BankTest {
 	}
 
 	@Test
-	void changeBalanceShouldThrowExceptionWhenAccountDoesntExist() {
+	void createdAccountShouldHaveBalance0() {
+		// given
+		bank.createAccount(ACCOUNT_ID_1);
+
+		// when
+		int balance = bank.getBalance(ACCOUNT_ID_1);
+
+		// then
+		assertEquals(0, balance);
+	}
+
+	@Test
+	void shouldReturn0ForNotExistingAccount() {
+		// when
+		int balance = bank.getBalance(ACCOUNT_ID_1);
+
+		// then
+		assertEquals(0, balance);
+	}
+
+	@Test
+	void changeBalance_shouldReturnAccountIsMissingStatusIfAccountDoesntExist() {
 		// when
 		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
 		// then
 		assertTrue(operationStatus instanceof AccountIsMissingStatus);
-		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getId());
+		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
 	}
 
 	@Test
-	void shouldChangeBalanceWhenAccountExists() {
+	void shouldChangeBalanceWhenAccountExistsAndHasZeroBalance() {
 		// given
 		bank.createAccount(ACCOUNT_ID_1);
 
@@ -52,6 +75,20 @@ class BankTest {
 		// then
 		assertTrue(operationStatus instanceof OkStatus);
 		assertEquals(20, bank.getBalance(ACCOUNT_ID_1));
+	}
+
+	@Test
+	void shouldChangeBalanceWhenAccountExistsAndHasNonZeroBalance() {
+		// given
+		bank.createAccount(ACCOUNT_ID_1);
+		bank.changeBalance(ACCOUNT_ID_1, 20);
+
+		// when
+		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
+
+		// then
+		assertTrue(operationStatus instanceof OkStatus);
+		assertEquals(40, bank.getBalance(ACCOUNT_ID_1));
 	}
 
 	@Test
@@ -97,13 +134,16 @@ class BankTest {
 	}
 
 	@Test
-	void shouldNotTransferMoneyWhenSourceAndTargetAccountDoesNotExist() {
+	void shouldNotTransferMoneyWhenSourceAccountDoesNotExist() {
+		// given
+		initialiseAccount(ACCOUNT_ID_2, 200);
+
 		// when
 		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
 		// then
 		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
-		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getId());
+		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
 	}
 
 	@Test
@@ -116,7 +156,7 @@ class BankTest {
 
 		// then
 		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
-		assertEquals(ACCOUNT_ID_2, ((AccountIsMissingStatus) operationStatus).getId());
+		assertEquals(ACCOUNT_ID_2, ((AccountIsMissingStatus) operationStatus).getAccountId());
 	}
 
 	@Test
@@ -126,7 +166,7 @@ class BankTest {
 		initialiseAccount(ACCOUNT_ID_2, 0);
 
 		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 100));
+		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
 
 		// then
 		assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);

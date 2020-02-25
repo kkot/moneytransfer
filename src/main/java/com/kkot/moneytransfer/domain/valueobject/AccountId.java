@@ -1,4 +1,4 @@
-package com.kkot.moneytransfer.domain;
+package com.kkot.moneytransfer.domain.valueobject;
 
 import java.util.Objects;
 

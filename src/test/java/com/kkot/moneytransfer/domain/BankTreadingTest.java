@@ -1,6 +1,6 @@
 package com.kkot.moneytransfer.domain;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -8,10 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.Transfer;
 
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -21,11 +22,11 @@ class BankTreadingTest {
 	private static final AccountId ACCOUNT_ID_1 = AccountId.of("1");
 	private static final AccountId ACCOUNT_ID_2 = AccountId.of("2");
 
-	@Inject
 	private Bank bank;
 
 	@BeforeEach
 	void setUp() {
+		bank = new Bank(new AccountsStore());
 	}
 
 	/**
@@ -55,7 +56,7 @@ class BankTreadingTest {
 	}
 
 	@Test
-	void shouldTransferMoneyWhenBothAccountExistsAndSufficientBalance() throws InterruptedException {
+	void shouldNotDeadlockAndHaveCorrectAmountWhenTwoAccountTransferringToEachOther() throws InterruptedException {
 		final int initialBalance = 100_000;
 
 		bank.createAccount(ACCOUNT_ID_1);

@@ -1,15 +1,15 @@
 package com.kkot.moneytransfer.domain.status;
 
-import com.kkot.moneytransfer.domain.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
 
 public class AccountIsMissingStatus implements OperationStatus {
-	private final AccountId id;
+	private final AccountId accountId;
 
-	public AccountIsMissingStatus(final AccountId id) {
-		this.id = id;
+	public AccountIsMissingStatus(final AccountId accountId) {
+		this.accountId = accountId;
 	}
 
-	public Object getId() {
-		return this.id;
+	public Object getAccountId() {
+		return this.accountId;
 	}
 }

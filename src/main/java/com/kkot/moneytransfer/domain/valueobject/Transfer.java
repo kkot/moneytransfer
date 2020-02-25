@@ -1,4 +1,4 @@
-package com.kkot.moneytransfer.domain;
+package com.kkot.moneytransfer.domain.valueobject;
 
 public class Transfer {
 	private final AccountId sourceId;

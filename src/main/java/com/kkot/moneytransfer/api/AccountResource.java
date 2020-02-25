@@ -7,7 +7,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.kkot.moneytransfer.domain.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.Bank;
 
 @Path("/account/{id}")

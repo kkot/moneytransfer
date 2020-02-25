@@ -1,13 +1,18 @@
 package com.kkot.moneytransfer.domain;
 
-public class Account {
-	private AccountId id;
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
 
+public class Account {
+	private final AccountId id;
 	private int balance;
 
 	public Account(final AccountId id) {
 		this.id = id;
 		this.balance = 0;
+	}
+
+	public AccountId getId() {
+		return id;
 	}
 
 	public void changeBalance(int amount) {

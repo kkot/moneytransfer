@@ -1,11 +1,13 @@
-package com.kkot.moneytransfer.domain;
+package com.kkot.moneytransfer.domain.valueobject;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class AccountWithLock {
-	private Account account;
-	private ReadWriteLock lock;
+import com.kkot.moneytransfer.domain.Account;
+
+public class AccountWithLock {
+	private final Account account;
+	private final ReadWriteLock lock;
 
 	public AccountWithLock(final Account account) {
 		this.account = account;

@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.AccountWithLock;
+
 @ApplicationScoped
 class AccountsStore {
 	protected Map<AccountId, AccountWithLock> accounts;

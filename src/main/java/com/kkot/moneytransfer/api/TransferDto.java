@@ -1,7 +1,7 @@
 package com.kkot.moneytransfer.api;
 
-import com.kkot.moneytransfer.domain.AccountId;
-import com.kkot.moneytransfer.domain.Transfer;
+import com.kkot.moneytransfer.domain.valueobject.AccountId;
+import com.kkot.moneytransfer.domain.valueobject.Transfer;
 
 public class TransferDto {
 	private String sourceAccountId;
