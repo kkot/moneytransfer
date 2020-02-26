@@ -69,10 +69,10 @@ public class Bank {
 	public OperationStatus transfer(final Transfer transfer) {
 		ValueHolder<OperationStatus> result = new ValueHolder<>(new OkStatus());
 
-		if(!accountsStore.contains(transfer.getSourceId())) {
+		if(!accountsStore.exists(transfer.getSourceId())) {
 			return new AccountIsMissingStatus(transfer.getSourceId());
 		}
-		if(!accountsStore.contains(transfer.getTargetId())) {
+		if(!accountsStore.exists(transfer.getTargetId())) {
 			return new AccountIsMissingStatus(transfer.getTargetId());
 		}
 

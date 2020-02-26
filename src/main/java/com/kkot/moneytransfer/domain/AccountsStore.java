@@ -18,6 +18,9 @@ import javax.enterprise.context.ApplicationScoped;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.valueobject.AccountWithLock;
 
+/**
+ * Stores @{link Account}s in memory and allow to access them in a thread-safe way.
+ */
 @ApplicationScoped
 class AccountsStore {
 	protected Map<AccountId, AccountWithLock> accounts;
@@ -36,12 +39,24 @@ class AccountsStore {
 
 	public boolean accessExclusively(AccountId accountId, Consumer<Account> operation) {
 		return accessAccounts(List.of(accountId), ReadWriteLock::writeLock,
-				(accounts -> operation.accept(accounts.get(0))));
+				consumeOneElement(operation));
+	}
+
+	/**
+	 * Creates a consumer that consumes the the first element of list.
+	 * The list must have single element or {@link IllegalArgumentException} is thrown.
+	 */
+	private Consumer<List<Account>> consumeOneElement(final Consumer<Account> operation) {
+		return accountsToConsume -> {
+			if (accountsToConsume.size() != 1) {
+				throw new IllegalArgumentException("list of accounts should have single element");
+			}
+			operation.accept(accountsToConsume.get(0));
+		};
 	}
 
 	public boolean accessShared(AccountId accountId, Consumer<Account> operation) {
-		return accessAccounts(List.of(accountId), ReadWriteLock::readLock,
-				(accounts -> operation.accept(accounts.get(0))));
+		return accessAccounts(List.of(accountId), ReadWriteLock::readLock, consumeOneElement(operation));
 	}
 
 	private boolean accessAccounts(
@@ -79,7 +94,7 @@ class AccountsStore {
 		return true;
 	}
 
-	public boolean contains(final AccountId sourceId) {
+	public boolean exists(final AccountId sourceId) {
 		return accounts.containsKey(sourceId);
 	}
 }
