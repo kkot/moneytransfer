@@ -1,5 +1,8 @@
 package com.kkot.moneytransfer.api;
 
+import com.kkot.moneytransfer.api.dto.TransferDto;
+import com.kkot.moneytransfer.api.service.TransferApiService;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;

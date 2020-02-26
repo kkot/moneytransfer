@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.kkot.moneytransfer.api.dto.TransferDto;
 import com.kkot.moneytransfer.domain.Bank;
 import com.kkot.moneytransfer.domain.MockAccountsStore;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;

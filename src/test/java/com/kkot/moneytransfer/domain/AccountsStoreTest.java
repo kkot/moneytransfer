@@ -65,7 +65,7 @@ class AccountsStoreTest {
 	@MethodSource("provideTwoAccountsInDifferentOrder")
 	void accessExclusivelyShouldReturnTrueAndExecuteActionForManyAccountIfExistInRightOrder(AccountId id1, AccountId id2) {
 		// given
-		// create is the same order, not one from the method arguments
+		// create is the same order
 		accountsStore.createAccount(ACCOUNT_ID_1);
 		accountsStore.createAccount(ACCOUNT_ID_2);
 

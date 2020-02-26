@@ -9,15 +9,15 @@ import javax.ws.rs.core.MediaType;
 @Path("/hello")
 public class HelloResource {
 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public String hello() {
-		return "hello Get";
-	}
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public String hello() {
+        return "hello Get";
+    }
 
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
-	public String helloPost() {
-		return "hello Post";
-	}
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    public String helloPost() {
+        return "hello Post";
+    }
 }

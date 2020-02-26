@@ -1,25 +1,28 @@
 package com.kkot.moneytransfer.api;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.kkot.moneytransfer.api.dto.AccountDto;
+import com.kkot.moneytransfer.api.service.AccountApiService;
 
-import com.kkot.moneytransfer.domain.valueobject.AccountId;
-import com.kkot.moneytransfer.domain.Bank;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/account/{id}")
 public class AccountResource {
 
-	@Inject
-	Bank bank;
+    @Inject
+    private AccountApiService accountApiService;
 
-	@GET
-	@Path("/balance")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String balance(@PathParam("id") String id) {
-		return String.valueOf(bank.getBalance(AccountId.of(id)));
-	}
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAccount(@PathParam("id") String id) {
+        return accountApiService.getAccount(id);
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createAccount(@PathParam("id") String id, AccountDto accountDto) {
+        return accountApiService.createAccount(id, accountDto);
+    }
 }
