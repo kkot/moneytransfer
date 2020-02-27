@@ -1,9 +1,6 @@
 package com.kkot.moneytransfer.domain;
 
-import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
-import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
-import com.kkot.moneytransfer.domain.status.OkStatus;
-import com.kkot.moneytransfer.domain.status.OperationStatus;
+import com.kkot.moneytransfer.domain.status.*;
 import com.kkot.moneytransfer.domain.util.ValueHolder;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.valueobject.Transfer;
@@ -88,6 +85,9 @@ public class Bank {
     public OperationStatus transfer(final Transfer transfer) {
         ValueHolder<OperationStatus> result = new ValueHolder<>(new OkStatus());
 
+        if (transfer.getAmount() <= 0) {
+            return new AmountIsNotPositiveNumberStatus();
+        }
         if (!accountsStore.exists(transfer.getSourceId())) {
             return new AccountIsMissingStatus(transfer.getSourceId());
         }

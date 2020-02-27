@@ -4,10 +4,7 @@ import com.kkot.moneytransfer.api.TransferErrorType;
 import com.kkot.moneytransfer.api.dto.TransferDto;
 import com.kkot.moneytransfer.api.dto.TransferErrorDto;
 import com.kkot.moneytransfer.domain.Bank;
-import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
-import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
-import com.kkot.moneytransfer.domain.status.OkStatus;
-import com.kkot.moneytransfer.domain.status.OperationStatus;
+import com.kkot.moneytransfer.domain.status.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -32,6 +29,10 @@ public class TransferApiService {
             var accountNotExistStatus = (AccountIsMissingStatus) status;
             var errorDto = new TransferErrorDto(TransferErrorType.ACCOUNT_ID_MISSING,
                     accountNotExistStatus.getAccountId());
+            return createBadRequest(errorDto);
+        }
+        if (status instanceof AmountIsNotPositiveNumberStatus) {
+            var errorDto = new TransferErrorDto(TransferErrorType.NOT_POSITIVE_AMOUNT);
             return createBadRequest(errorDto);
         }
         if (status instanceof InsufficientBalanceStatus) {

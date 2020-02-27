@@ -22,6 +22,7 @@ public class AccountResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response createAccount(@PathParam("id") String id, AccountDto accountDto) {
         return accountApiService.createAccount(id, accountDto);
     }

@@ -1,19 +1,19 @@
 package com.kkot.moneytransfer.domain;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.kkot.moneytransfer.domain.status.AccountIsMissingStatus;
 import com.kkot.moneytransfer.domain.status.InsufficientBalanceStatus;
 import com.kkot.moneytransfer.domain.status.OkStatus;
 import com.kkot.moneytransfer.domain.status.OperationStatus;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.valueobject.Transfer;
-
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class BankTest {
@@ -55,7 +55,7 @@ class BankTest {
 	}
 
 	@Test
-	void changeBalance_shouldReturnAccountIsMissingStatusIfAccountDoesntExist() {
+	void changeBalanceShouldReturnAccountIsMissingStatusIfAccountDoesntExist() {
 		// when
 		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
@@ -161,6 +161,22 @@ class BankTest {
 
 	@Test
 	void shouldNotTransferMoneyWhenSourceAccountHasNotSufficientBalance() {
+		// given
+		initialiseAccount(ACCOUNT_ID_1, 50);
+		initialiseAccount(ACCOUNT_ID_2, 0);
+
+		// when
+		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
+
+		// then
+		assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);
+		assertEquals(50, bank.getBalance(ACCOUNT_ID_1));
+		assertEquals(0, bank.getBalance(ACCOUNT_ID_2));
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {0, -50})
+	void shouldNotTransferMoneyWhenAmountIs0OrNegative(int amount) {
 		// given
 		initialiseAccount(ACCOUNT_ID_1, 50);
 		initialiseAccount(ACCOUNT_ID_2, 0);

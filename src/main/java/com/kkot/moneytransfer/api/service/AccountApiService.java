@@ -33,8 +33,11 @@ public class AccountApiService {
     }
 
     public Response createAccount(String accountId, AccountDto accountDto) {
-        if (StringUtils.isBlank(accountDto.getAccountId())) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (StringUtils.isBlank(accountDto.getAccountId())
+                || accountDto.getBalance() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorDto("accountId or accountDto is empty"))
+                    .build();
         }
         if (!accountDto.getAccountId().equals(accountId)) {
             return Response.status(Response.Status.BAD_REQUEST)
