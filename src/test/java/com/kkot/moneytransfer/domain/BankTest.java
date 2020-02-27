@@ -17,176 +17,175 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class BankTest {
+    private static final AccountId ACCOUNT_ID_1 = AccountId.of("1");
+    private static final AccountId ACCOUNT_ID_2 = AccountId.of("2");
 
-	private static final AccountId ACCOUNT_ID_1 = AccountId.of("1");
-	private static final AccountId ACCOUNT_ID_2 = AccountId.of("2");
+    private Bank bank;
 
-	private Bank bank;
+    @BeforeEach
+    void setUp() {
+        bank = new Bank(new AccountsStore());
+    }
 
-	@BeforeEach
-	void setUp() {
-		bank = new Bank(new AccountsStore());
-	}
+    private void initialiseAccount(final AccountId accountId, final int initialBalance) {
+        bank.createAccount(accountId);
+        bank.changeBalance(accountId, initialBalance);
+    }
 
-	private void initialiseAccount(final AccountId accountId, final int initialBalance) {
-		bank.createAccount(accountId);
-		bank.changeBalance(accountId, initialBalance);
-	}
+    @Test
+    void createdAccountShouldHaveBalance0() {
+        // given
+        bank.createAccount(ACCOUNT_ID_1);
 
-	@Test
-	void createdAccountShouldHaveBalance0() {
-		// given
-		bank.createAccount(ACCOUNT_ID_1);
+        // when
+        int balance = bank.getBalance(ACCOUNT_ID_1);
 
-		// when
-		int balance = bank.getBalance(ACCOUNT_ID_1);
+        // then
+        assertEquals(0, balance);
+    }
 
-		// then
-		assertEquals(0, balance);
-	}
+    @Test
+    void shouldReturn0ForNotExistingAccount() {
+        // when
+        int balance = bank.getBalance(ACCOUNT_ID_1);
 
-	@Test
-	void shouldReturn0ForNotExistingAccount() {
-		// when
-		int balance = bank.getBalance(ACCOUNT_ID_1);
+        // then
+        assertEquals(0, balance);
+    }
 
-		// then
-		assertEquals(0, balance);
-	}
+    @Test
+    void changeBalanceShouldReturnAccountIsMissingStatusIfAccountDoesntExist() {
+        // when
+        OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
-	@Test
-	void changeBalanceShouldReturnAccountIsMissingStatusIfAccountDoesntExist() {
-		// when
-		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
+        // then
+        assertTrue(operationStatus instanceof AccountIsMissingStatus);
+        assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
+    }
 
-		// then
-		assertTrue(operationStatus instanceof AccountIsMissingStatus);
-		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
-	}
+    @Test
+    void shouldChangeBalanceWhenAccountExistsAndHasZeroBalance() {
+        // given
+        bank.createAccount(ACCOUNT_ID_1);
 
-	@Test
-	void shouldChangeBalanceWhenAccountExistsAndHasZeroBalance() {
-		// given
-		bank.createAccount(ACCOUNT_ID_1);
+        // when
+        OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
-		// when
-		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
+        // then
+        assertTrue(operationStatus instanceof OkStatus);
+        assertEquals(20, bank.getBalance(ACCOUNT_ID_1));
+    }
 
-		// then
-		assertTrue(operationStatus instanceof OkStatus);
-		assertEquals(20, bank.getBalance(ACCOUNT_ID_1));
-	}
+    @Test
+    void shouldChangeBalanceWhenAccountExistsAndHasNonZeroBalance() {
+        // given
+        bank.createAccount(ACCOUNT_ID_1);
+        bank.changeBalance(ACCOUNT_ID_1, 20);
 
-	@Test
-	void shouldChangeBalanceWhenAccountExistsAndHasNonZeroBalance() {
-		// given
-		bank.createAccount(ACCOUNT_ID_1);
-		bank.changeBalance(ACCOUNT_ID_1, 20);
+        // when
+        OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
 
-		// when
-		OperationStatus operationStatus = bank.changeBalance(ACCOUNT_ID_1, 20);
+        // then
+        assertTrue(operationStatus instanceof OkStatus);
+        assertEquals(40, bank.getBalance(ACCOUNT_ID_1));
+    }
 
-		// then
-		assertTrue(operationStatus instanceof OkStatus);
-		assertEquals(40, bank.getBalance(ACCOUNT_ID_1));
-	}
+    @Test
+    void shouldNotChangeBalanceWhenTryingToCreateAccountAgain() {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 20);
 
-	@Test
-	void shouldNotChangeBalanceWhenTryingToCreateAccountAgain() {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 20);
+        // when
+        bank.createAccount(ACCOUNT_ID_1);
 
-		// when
-		bank.createAccount(ACCOUNT_ID_1);
+        // then
+        assertEquals(20, bank.getBalance(ACCOUNT_ID_1));
+    }
 
-		// then
-		assertEquals(20, bank.getBalance(ACCOUNT_ID_1));
-	}
+    @Test
+    void shouldTransferMoneyWhenBothAccountExistsAndSufficientBalance() {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 200);
+        initialiseAccount(ACCOUNT_ID_2, 0);
 
-	@Test
-	void shouldTransferMoneyWhenBothAccountExistsAndSufficientBalance() {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 200);
-		initialiseAccount(ACCOUNT_ID_2, 0);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
+        // then
+        assertEquals(operationStatus.getClass(), OkStatus.class);
+        assertEquals(150, bank.getBalance(ACCOUNT_ID_1));
+        assertEquals(50, bank.getBalance(ACCOUNT_ID_2));
+    }
 
-		// then
-		assertEquals(operationStatus.getClass(), OkStatus.class);
-		assertEquals(150, bank.getBalance(ACCOUNT_ID_1));
-		assertEquals(50, bank.getBalance(ACCOUNT_ID_2));
-	}
+    @Test
+    void shouldTransferMoneyWhenBothAccountExistsAndSourceBalanceEqualsAmount() {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 200);
+        initialiseAccount(ACCOUNT_ID_2, 0);
 
-	@Test
-	void shouldTransferMoneyWhenBothAccountExistsAndSourceBalanceEqualsAmount() {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 200);
-		initialiseAccount(ACCOUNT_ID_2, 0);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 200));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 200));
+        // then
+        assertEquals(operationStatus.getClass(), OkStatus.class);
+        assertEquals(0, bank.getBalance(ACCOUNT_ID_1));
+        assertEquals(200, bank.getBalance(ACCOUNT_ID_2));
+    }
 
-		// then
-		assertEquals(operationStatus.getClass(), OkStatus.class);
-		assertEquals(0, bank.getBalance(ACCOUNT_ID_1));
-		assertEquals(200, bank.getBalance(ACCOUNT_ID_2));
-	}
+    @Test
+    void shouldNotTransferMoneyWhenSourceAccountDoesNotExist() {
+        // given
+        initialiseAccount(ACCOUNT_ID_2, 200);
 
-	@Test
-	void shouldNotTransferMoneyWhenSourceAccountDoesNotExist() {
-		// given
-		initialiseAccount(ACCOUNT_ID_2, 200);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
+        // then
+        assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
+        assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
+    }
 
-		// then
-		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
-		assertEquals(ACCOUNT_ID_1, ((AccountIsMissingStatus) operationStatus).getAccountId());
-	}
+    @Test
+    void shouldNotTransferMoneyWhenTargetAccountDoesNotExist() {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 200);
 
-	@Test
-	void shouldNotTransferMoneyWhenTargetAccountDoesNotExist() {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 200);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 50));
+        // then
+        assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
+        assertEquals(ACCOUNT_ID_2, ((AccountIsMissingStatus) operationStatus).getAccountId());
+    }
 
-		// then
-		assertEquals(operationStatus.getClass(), AccountIsMissingStatus.class);
-		assertEquals(ACCOUNT_ID_2, ((AccountIsMissingStatus) operationStatus).getAccountId());
-	}
+    @Test
+    void shouldNotTransferMoneyWhenSourceAccountHasNotSufficientBalance() {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 50);
+        initialiseAccount(ACCOUNT_ID_2, 0);
 
-	@Test
-	void shouldNotTransferMoneyWhenSourceAccountHasNotSufficientBalance() {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 50);
-		initialiseAccount(ACCOUNT_ID_2, 0);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
+        // then
+        assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);
+        assertEquals(50, bank.getBalance(ACCOUNT_ID_1));
+        assertEquals(0, bank.getBalance(ACCOUNT_ID_2));
+    }
 
-		// then
-		assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);
-		assertEquals(50, bank.getBalance(ACCOUNT_ID_1));
-		assertEquals(0, bank.getBalance(ACCOUNT_ID_2));
-	}
+    @ParameterizedTest
+    @ValueSource(ints = {0, -50})
+    void shouldNotTransferMoneyWhenAmountIs0OrNegative(int amount) {
+        // given
+        initialiseAccount(ACCOUNT_ID_1, 50);
+        initialiseAccount(ACCOUNT_ID_2, 0);
 
-	@ParameterizedTest
-	@ValueSource(ints = {0, -50})
-	void shouldNotTransferMoneyWhenAmountIs0OrNegative(int amount) {
-		// given
-		initialiseAccount(ACCOUNT_ID_1, 50);
-		initialiseAccount(ACCOUNT_ID_2, 0);
+        // when
+        OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
 
-		// when
-		OperationStatus operationStatus = bank.transfer(new Transfer(ACCOUNT_ID_1, ACCOUNT_ID_2, 51));
-
-		// then
-		assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);
-		assertEquals(50, bank.getBalance(ACCOUNT_ID_1));
-		assertEquals(0, bank.getBalance(ACCOUNT_ID_2));
-	}
+        // then
+        assertEquals(operationStatus.getClass(), InsufficientBalanceStatus.class);
+        assertEquals(50, bank.getBalance(ACCOUNT_ID_1));
+        assertEquals(0, bank.getBalance(ACCOUNT_ID_2));
+    }
 }

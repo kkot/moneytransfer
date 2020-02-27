@@ -20,96 +20,95 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @QuarkusTest
 class AccountResourceTest {
-	private static final AccountId ACCOUNT_1 = AccountId.of("1");
+    private static final AccountId ACCOUNT_1 = AccountId.of("1");
 
-	@Inject
-	private Bank bank;
+    @Inject
+    private Bank bank;
 
-	@Inject
-	private MockAccountsStore mockAccountsStore;
+    @Inject
+    private MockAccountsStore mockAccountsStore;
 
-	@BeforeEach
-	void setUp() {
-		mockAccountsStore.deleteAccounts();
+    @BeforeEach
+    void setUp() {
+        mockAccountsStore.deleteAccounts();
+    }
+
+    @Test
+    void shouldAccountIfExists() {
+        bank.createAccount(ACCOUNT_1);
+        bank.changeBalance(ACCOUNT_1, 123);
+
+        given()
+                .when().get("/account/1")
+                .then()
+                .statusCode(200)
+                .body("accountId", is("1"))
+                .body("balance", is(123));
 	}
 
-	@Test
-	void shouldAccountIfExists() {
-		bank.createAccount(ACCOUNT_1);
-		bank.changeBalance(ACCOUNT_1, 123);
+    @Test
+    void should404whenAccountNotFound() {
+        given()
+                .when().get("/account/1")
+                .then()
+                .statusCode(404);
+    }
 
-		given()
-				.when().get("/account/1")
-				.then()
-				.statusCode(200)
-				.body("accountId", is("1"))
-				.body("balance", is(123));
-		;
-	}
+    @Test
+    void shouldCreateAccountWithGivenIdAndAmountAndReturn200() {
+        // given
+        AccountDto accountDto = new AccountDto("abc", 55);
+        given()
+                .contentType(ContentType.JSON)
+                .body(accountDto)
 
-	@Test
-	void should404whenAccountNotFound() {
-		given()
-				.when().get("/account/1")
-				.then()
-				.statusCode(404);
-	}
+                // when
+                .put("/account/abc")
 
-	@Test
-	void shouldCreateAccountWithGivenIdAndAmountAndReturn200() {
-		// given
-		AccountDto accountDto = new AccountDto("abc",55);
-		given()
-				.contentType(ContentType.JSON)
-				.body(accountDto)
+                //then
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
 
-				// when
-				.put("/account/abc")
+        assertEquals(55, bank.getBalance(AccountId.of("abc")));
+    }
 
-				//then
-				.then()
-				.statusCode(Response.Status.OK.getStatusCode());
+    @Test
+    void shouldNotCreateAccountAndReturn400WhenAccountIdIsDifferentInContentAndPath() {
+        // given
+        var idInBody = "def";
+        var idInPath = "abc";
+        AccountDto accountDto = new AccountDto(idInBody, 55);
+        given()
+                .contentType(ContentType.JSON)
+                .body(accountDto)
 
-		assertEquals(55, bank.getBalance(AccountId.of("abc")));
-	}
+                // when
+                .put("/account/" + idInPath)
 
-	@Test
-	void shouldNotCreateAccountAndReturn400WhenAccountIdIsDifferentInContentAndPath() {
-		// given
-		var idInBody = "def";
-		var idInPath = "abc";
-		AccountDto accountDto = new AccountDto(idInBody,55);
-		given()
-				.contentType(ContentType.JSON)
-				.body(accountDto)
+                //then
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body("error", equalTo("account id in path is different than in body"));
 
-				// when
-				.put("/account/" + idInPath)
+        assertFalse(bank.exists(AccountId.of("abc")), "account 'abc' should not be created");
+        assertFalse(bank.exists(AccountId.of("def")), "account 'def' should not be created");
+    }
 
-				//then
-				.then()
-				.statusCode(Response.Status.BAD_REQUEST.getStatusCode())
-		.body("error", equalTo("account id in path is different than in body"));
+    @Test
+    void shouldNotCreateAccountAndReturn400WhenRequestBodyIsNotJson() {
+        // given
+        given()
+                .contentType(ContentType.JSON)
+                .body("not valid body")
 
-		assertFalse(bank.exists(AccountId.of("abc")), "account 'abc' should not be created");
-		assertFalse(bank.exists(AccountId.of("def")), "account 'def' should not be created");
-	}
+                // when
+                .put("/account/abc")
 
-	@Test
-	void shouldNotCreateAccountAndReturn400WhenRequestBodyIsNotJson() {
-		// given
-		given()
-				.contentType(ContentType.JSON)
-				.body("not valid body")
+                //then
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        // TODO: add some standard response body when cannot process body
 
-				// when
-				.put("/account/abc")
-
-				//then
-				.then()
-				.statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-		// TODO: add some standard response body when cannot process body
-
-		assertFalse(bank.exists(AccountId.of("abc")), "account 'abc' should not be created");
-	}
+        assertFalse(bank.exists(AccountId.of("abc")), "account 'abc' should not be created");
+    }
 }

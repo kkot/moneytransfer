@@ -12,7 +12,6 @@ import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 public class AccountApiService {
-
     private Bank bank;
 
     @Inject

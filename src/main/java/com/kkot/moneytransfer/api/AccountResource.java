@@ -10,7 +10,6 @@ import javax.ws.rs.core.Response;
 
 @Path("/account/{id}")
 public class AccountResource {
-
     @Inject
     private AccountApiService accountApiService;
 

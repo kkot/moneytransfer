@@ -1,14 +1,13 @@
 package com.kkot.moneytransfer.domain;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.test.Mock;
+
+import javax.enterprise.context.ApplicationScoped;
 
 @Mock
 @ApplicationScoped
 public class MockAccountsStore extends AccountsStore {
-
-	public void deleteAccounts() {
-		accounts.clear();
-	}
+    public void deleteAccounts() {
+        accounts.clear();
+    }
 }
