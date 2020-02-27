@@ -21,7 +21,7 @@ public class TransferResource {
     }
 
     @POST
-    public Response newTransfer(TransferDto transfer) {
+    public Response performTransfer(TransferDto transfer) {
         return service.transfer(transfer);
     }
 }

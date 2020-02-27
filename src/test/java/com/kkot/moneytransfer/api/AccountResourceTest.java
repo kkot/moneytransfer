@@ -76,13 +76,15 @@ class AccountResourceTest {
 	@Test
 	void shouldNotCreateAccountAndReturn400WhenAccountIdIsDifferentInContentAndPath() {
 		// given
-		AccountDto accountDto = new AccountDto("def",55);
+		var idInBody = "def";
+		var idInPath = "abc";
+		AccountDto accountDto = new AccountDto(idInBody,55);
 		given()
 				.contentType(ContentType.JSON)
 				.body(accountDto)
 
 				// when
-				.put("/account/abc")
+				.put("/account/" + idInPath)
 
 				//then
 				.then()

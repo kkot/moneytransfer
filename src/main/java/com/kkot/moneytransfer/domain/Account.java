@@ -19,11 +19,11 @@ public class Account {
         this.balance += amount;
     }
 
-    public int getBalance() {
-        return balance;
-    }
-
     public void setBalance(final Integer balance) {
         this.balance = balance;
+    }
+
+    public int getBalance() {
+        return balance;
     }
 }
