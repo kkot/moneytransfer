@@ -4,17 +4,19 @@
 
 This is my first Quarkus project.
 
-For constructor injection no-args constructor is needed, this is different than Spring.
-
-https://quarkus.io/guides/cdi-reference#simplified-constructor-injection
-
-(so a no-args constructor should be generated for an application scoped bean class that does not extend any other class)
-https://github.com/quarkusio/quarkus/issues/6722
-
-
 ## API
 
-It is described by ... TODO: add swagger.
+I didn't have to to create a Swagger doc. Example requests:
+
+```
+curl -v -X PUT -H "Content-Type: application/json" -d "{\"accountId\":\"1\",\"balance\":100}" http://localhost:8080/account/1
+
+curl -v -X PUT -H "Content-Type: application/json" -d "{\"accountId\":\"2\",\"balance\":100}" http://localhost:8080/account/2
+
+curl -v -X POST -H "Content-Type: application/json" -d "{\"sourceAccountId\":\"1\",\"targetAccountId\": \"2\", \"amount\":50}" http://localhost:8080/transfers
+
+curl -v -H "Content-Type: application/json" http://localhost:8080/account/1
+```
 
 ## Framework
 
@@ -46,3 +48,13 @@ Or you can use Docker to build the native executable using: `./mvnw package -Pna
 You can then execute your binary: `./target/moneytransfer-1.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image-guide .
+
+## Learned
+
+For constructor injection no-args constructor is needed, this is different than Spring.
+
+https://quarkus.io/guides/cdi-reference#simplified-constructor-injection
+
+(so a no-args constructor should be generated for an application scoped bean class that does not extend any other class)
+https://github.com/quarkusio/quarkus/issues/6722
+

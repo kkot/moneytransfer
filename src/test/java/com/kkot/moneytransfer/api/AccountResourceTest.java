@@ -44,7 +44,7 @@ class AccountResourceTest {
                 .statusCode(200)
                 .body("accountId", is("1"))
                 .body("balance", is(123));
-	}
+    }
 
     @Test
     void should404whenAccountNotFound() {

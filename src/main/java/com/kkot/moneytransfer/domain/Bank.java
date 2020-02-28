@@ -4,6 +4,8 @@ import com.kkot.moneytransfer.domain.status.*;
 import com.kkot.moneytransfer.domain.util.ValueHolder;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.valueobject.Transfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @ApplicationScoped
 public class Bank {
+    private static final Logger log = LoggerFactory.getLogger(Bank.class);
 
     private AccountsStore accountsStore;
 
@@ -29,7 +32,9 @@ public class Bank {
      * @param accountId account id to create
      */
     public void createAccount(AccountId accountId) {
+        log.info("creating account {}", accountId);
         this.accountsStore.createAccount(accountId);
+        log.info("account created {}", accountId);
     }
 
     /**
@@ -41,14 +46,18 @@ public class Bank {
      * @return status of the operation
      */
     public OperationStatus changeBalance(AccountId accountId, int amount) {
+        log.debug("changing balance {}, amount {}", accountId, amount);
         boolean accountExisted = accountsStore.accessExclusively(accountId, account ->
                 account.changeBalance(amount));
+        log.debug("balanced changed {}", accountExisted);
         return accountExisted ? new OkStatus() : new AccountIsMissingStatus(accountId);
     }
 
     public OperationStatus setBalance(AccountId accountId, Integer balance) {
+        log.debug("setting balance {}, amount {}", accountId, balance);
         boolean accountExisted = accountsStore.accessExclusively(accountId, account ->
                 account.setBalance(balance));
+        log.debug("balanced set {}", accountExisted);
         return accountExisted ? new OkStatus() : new AccountIsMissingStatus(accountId);
     }
 
@@ -60,8 +69,12 @@ public class Bank {
      * @return balance of the account or 0 if the account with given id doesn't exist
      */
     public int getBalance(AccountId accountId) {
+        log.debug("getting balance {}", accountId);
         ValueHolder<Integer> holder = new ValueHolder<>(0);
-        accountsStore.accessShared(accountId, account -> holder.setValue(account.getBalance()));
+        accountsStore.accessShared(accountId, account -> {
+            holder.setValue(account.getBalance());
+        });
+        log.debug("balance retrieved {}", accountId);
         return holder.getValue();
     }
 
@@ -83,6 +96,7 @@ public class Bank {
      * @return operation status
      */
     public OperationStatus transfer(final Transfer transfer) {
+        log.debug("performing transfer {}", transfer);
         ValueHolder<OperationStatus> result = new ValueHolder<>(new OkStatus());
 
         if (transfer.getAmount() <= 0) {

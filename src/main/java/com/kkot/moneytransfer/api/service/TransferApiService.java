@@ -5,6 +5,8 @@ import com.kkot.moneytransfer.api.dto.TransferDto;
 import com.kkot.moneytransfer.api.dto.TransferErrorDto;
 import com.kkot.moneytransfer.domain.Bank;
 import com.kkot.moneytransfer.domain.status.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -13,6 +15,8 @@ import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 public class TransferApiService {
+    private static final Logger log = LoggerFactory.getLogger(TransferApiService.class);
+
     private final Bank bank;
 
     @Inject
@@ -21,7 +25,9 @@ public class TransferApiService {
     }
 
     public Response transfer(final TransferDto transfer) {
+        log.debug("making transfer {}", transfer);
         OperationStatus status = bank.transfer(transfer.toTransfer());
+        log.debug("transfer result {}", status);
         if (status instanceof OkStatus) {
             return Response.ok().build();
         }

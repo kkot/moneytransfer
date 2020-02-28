@@ -1,22 +1,26 @@
 package com.kkot.moneytransfer.domain;
 
+import com.kkot.moneytransfer.domain.util.AccessMode;
+import com.kkot.moneytransfer.domain.util.ExclusiveAccessMode;
+import com.kkot.moneytransfer.domain.util.SharedAccessMode;
 import com.kkot.moneytransfer.domain.valueobject.AccountId;
 import com.kkot.moneytransfer.domain.valueobject.AccountWithLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Stores @{link Account}s in memory and allow to access them in a thread-safe way.
  */
 @ApplicationScoped
-public
-class AccountsStore {
+public class AccountsStore {
+    private static final Logger log = LoggerFactory.getLogger(Bank.class);
+
     protected Map<AccountId, AccountWithLock> accounts;
 
     public AccountsStore() {
@@ -29,7 +33,9 @@ class AccountsStore {
      * @param accountId account id to create
      */
     public void createAccount(AccountId accountId) {
+        log.debug("creating account {}", accountId);
         this.accounts.putIfAbsent(accountId, new AccountWithLock(new Account(accountId)));
+        log.debug("account created {}", accountId);
     }
 
     /**
@@ -41,7 +47,7 @@ class AccountsStore {
      * @return true if all accounts with ids existed and operation was executed, false otherwise
      */
     public boolean accessExclusively(List<AccountId> accountIds, Consumer<List<Account>> operation) {
-        return accessAccounts(accountIds, ReadWriteLock::writeLock, operation);
+        return accessAccounts(accountIds, ExclusiveAccessMode.INSTANCE, operation);
     }
 
     /**
@@ -53,7 +59,7 @@ class AccountsStore {
      * @return true account with id existed and operation was executed, false otherwise
      */
     public boolean accessExclusively(AccountId accountId, Consumer<Account> operation) {
-        return accessAccounts(List.of(accountId), ReadWriteLock::writeLock,
+        return accessAccounts(List.of(accountId), ExclusiveAccessMode.INSTANCE,
                 consumeOneElement(operation));
     }
 
@@ -68,7 +74,7 @@ class AccountsStore {
      * @return true account with id existed and operation was executed, false otherwise
      */
     public boolean accessShared(AccountId accountId, Consumer<Account> operation) {
-        return accessAccounts(List.of(accountId), ReadWriteLock::readLock, consumeOneElement(operation));
+        return accessAccounts(List.of(accountId), SharedAccessMode.INSTANCE, consumeOneElement(operation));
     }
 
     /**
@@ -82,14 +88,16 @@ class AccountsStore {
      */
     private boolean accessAccounts(
             List<AccountId> accountIds,
-            Function<ReadWriteLock, Lock> getLock,
+            AccessMode accessMode,
             Consumer<List<Account>> action) {
+        log.debug("accessing accounts {}, mode {}", accountIds, accessMode);
 
         Optional<AccountId> firstNotExisting = accountIds
                 .stream()
                 .filter(id -> !accounts.containsKey(id))
                 .findFirst();
         if (firstNotExisting.isPresent()) {
+            log.debug("account is missing {}", firstNotExisting.get());
             return false;
         }
 
@@ -98,18 +106,24 @@ class AccountsStore {
         List<Lock> sortedLocks = sortedAccountIds
                 .stream()
                 .map(id -> accounts.get(id).getLock())
-                .map(getLock).collect(Collectors.toList());
+                .map(accessMode).collect(Collectors.toList());
 
+        log.debug("before locking accounts {}", sortedAccountIds);
         sortedLocks.forEach(Lock::lock);
+        log.debug("accounts locked {}", sortedAccountIds);
         try {
             List<Account> lockedAccounts = accountIds
                     .stream()
                     .map(id -> accounts.get(id))
                     .map(AccountWithLock::getAccount)
                     .collect(Collectors.toList());
+            log.debug("invoking action on accounts {}", lockedAccounts);
             action.accept(lockedAccounts);
+            log.debug("action finished {}", lockedAccounts);
         } finally {
+            log.debug("before unlocking accounts {}", sortedAccountIds);
             sortedLocks.forEach(Lock::unlock);
+            log.debug("accounts unlocked {}", sortedAccountIds);
         }
         return true;
     }
@@ -133,6 +147,7 @@ class AccountsStore {
      * @return true if exists, false otherwise
      */
     public boolean exists(final AccountId accountId) {
+        log.debug("checking if account exists {}", accountId);
         return accounts.containsKey(accountId);
     }
 }
