@@ -6,7 +6,7 @@ This is my first Quarkus project.
 
 ## API
 
-I didn't have to to create a Swagger doc. Example requests:
+I didn't have time to to create a Swagger doc. Please see tests and these example requests:
 
 ```
 curl -v -X PUT -H "Content-Type: application/json" -d "{\"accountId\":\"1\",\"balance\":100}" http://localhost:8080/account/1
